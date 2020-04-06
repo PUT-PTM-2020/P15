@@ -1,0 +1,9 @@
+C:\Users\Mateusz Kuźniak\source\repos\WindowsFormsApp1- STM\WindowsFormsApp1- STM\bin\Debug\WindowsFormsApp1- STM.exe.config
+C:\Users\Mateusz Kuźniak\source\repos\WindowsFormsApp1- STM\WindowsFormsApp1- STM\bin\Debug\WindowsFormsApp1- STM.exe
+C:\Users\Mateusz Kuźniak\source\repos\WindowsFormsApp1- STM\WindowsFormsApp1- STM\bin\Debug\WindowsFormsApp1- STM.pdb
+C:\Users\Mateusz Kuźniak\source\repos\WindowsFormsApp1- STM\WindowsFormsApp1- STM\obj\Debug\WindowsFormsApp1- STM.csprojAssemblyReference.cache
+C:\Users\Mateusz Kuźniak\source\repos\WindowsFormsApp1- STM\WindowsFormsApp1- STM\obj\Debug\WindowsFormsApp1__STM.Properties.Resources.resources
+C:\Users\Mateusz Kuźniak\source\repos\WindowsFormsApp1- STM\WindowsFormsApp1- STM\obj\Debug\WindowsFormsApp1- STM.csproj.GenerateResource.cache
+C:\Users\Mateusz Kuźniak\source\repos\WindowsFormsApp1- STM\WindowsFormsApp1- STM\obj\Debug\WindowsFormsApp1- STM.exe
+C:\Users\Mateusz Kuźniak\source\repos\WindowsFormsApp1- STM\WindowsFormsApp1- STM\obj\Debug\WindowsFormsApp1- STM.pdb
+C:\Users\Mateusz Kuźniak\source\repos\WindowsFormsApp1- STM\WindowsFormsApp1- STM\obj\Debug\WindowsFormsApp1__STM.Form1.resources
