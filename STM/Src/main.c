@@ -20,6 +20,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -45,9 +48,10 @@
 TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart2;
-UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+#define SERWER_PORT 50000
+#define SERWER_IP "127.0.0.1"
 uint32_t time;
 uint16_t dist_front;
 uint16_t dist_left;
@@ -60,7 +64,6 @@ uint16_t dist_right;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM4_Init(void);
-static void MX_USART3_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -68,6 +71,7 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 void forward()
 {
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
@@ -125,6 +129,33 @@ uint32_t distance(GPIO_TypeDef* GPIO_TRIG, uint16_t GPIO_PIN_TRIG, GPIO_TypeDef*
 
 	return local_time /58;
 }
+
+void send_string(char* s)
+{
+ HAL_UART_Transmit(&huart2, (uint8_t*)s, strlen(s), 100);
+}
+
+bool find_command(char bufor[], char command[])
+{
+	int find_command_size = strlen(command), x = 0;
+
+	int size_end = strlen(bufor);
+	for(int i =0; i<size_end; i++)	{
+		if (bufor[i]==command[x]){
+			if(x==0){
+				size_end = i + find_command_size;
+			}
+			x++;
+		}
+	}
+
+	if(x == find_command_size){
+		return true;}
+	else{
+		return false;}
+}
+
+
 /* USER CODE END 0 */
 
 /**
@@ -134,6 +165,8 @@ uint32_t distance(GPIO_TypeDef* GPIO_TRIG, uint16_t GPIO_PIN_TRIG, GPIO_TypeDef*
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+
+
 
   /* USER CODE END 1 */
   
@@ -157,7 +190,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM4_Init();
-  MX_USART3_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   	  	  	  	  	  	  	  	  	  	  	  /* TIM 4 ON */
@@ -170,15 +202,56 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
+
+  	  	  	  	  	  	  	  	  	  	  	  	  /* TESTY NAD WIFI -> DLACZEGO NIE DZIA�?A?! PART 2 */
+  char bufor[100] = {0};
+  /*RESET WIFI*/
+  send_string("AT+RST\r\n");
+  HAL_UART_Receive(&huart2, &bufor, 100, 100);
+
+  /*TEST KOMUNIKACJI*/
+  	 send_string("AT\r\n");
+  	 HAL_UART_Receive(&huart2, &bufor, 100, 100);
+
+  /*TRYB PRACY 1 - KLIENT / 2 - ACCES POINT*/
+  	  send_string("AT+CWMODE=3\r\n");
+  	  HAL_UART_Receive(&huart2, &bufor, 100, 100);
+
+  /*USTAWIENIA PUNKTU DOST�?POWEGO - <nazwa>,<hasło>,<kanał>,<kodowanie>*/
+  	  send_string("AT+CWSAP=\"ControlME\",\"1234567890\",5,3\r\n");
+  	  HAL_UART_Receive(&huart2, &bufor, 100, 100);
+
+
+    /* TRYB PRACY 0 - OBS�?UGA JEDNEGO PO�?ĄCZENIA */
+  	  send_string("AT+CIPMUX=1\r\n");
+  	  HAL_UART_Receive(&huart2, &bufor, 100, 150);
+
+
+
+/*KONFIGURACJA SERWEA NA OKREŚLONYM PORCIE*/
+  	  send_string("AT+CIPSERVER=1,80\r\n");
+  	  HAL_UART_Receive(&huart2, &bufor, 100, 150);
+  int i = 0;
+ char jada[] = "jada";
+  while(1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  HAL_UART_Receive(&huart2, &bufor, 100, 1000);
 
-	/*  dist_left		=	distance(GPIOC,		GPIO_PIN_15,	GPIOC,	GPIO_PIN_14 );	/* czujnik1 */
-	/*  dist_front	=	distance(GPIOC,		GPIO_PIN_13,	GPIOE,	GPIO_PIN_6 );	/* czujnik2 */
-	/*  dist_right	=	distance(GPIOE,		GPIO_PIN_5,		GPIOE,	GPIO_PIN_4 );	/* czujnik3 */
+	  if(find_command(bufor, "forward"))
+	  {
+	  	  forward();
+		  memset(bufor, 0, strlen(bufor));
+		  HAL_Delay(100);
+		  break_();
+	  }
+
+	/*dist_front		=	distance(GPIOC,		GPIO_PIN_15,	GPIOC,	GPIO_PIN_14 );	/* czujnik1 */
+	/*dist_left	=	distance(GPIOE,		GPIO_PIN_5,		GPIOE,	GPIO_PIN_4 );
+	dist_right	=	distance(GPIOC,		GPIO_PIN_13,	GPIOE,	GPIO_PIN_6 );	/* czujnik2 */
+		/* czujnik3 */
 
   }
   /* USER CODE END 3 */
@@ -323,39 +396,6 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
-  * @brief USART3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART3_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART3_Init 0 */
-
-  /* USER CODE END USART3_Init 0 */
-
-  /* USER CODE BEGIN USART3_Init 1 */
-
-  /* USER CODE END USART3_Init 1 */
-  huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
-  huart3.Init.WordLength = UART_WORDLENGTH_8B;
-  huart3.Init.StopBits = UART_STOPBITS_1;
-  huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX_RX;
-  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART3_Init 2 */
-
-  /* USER CODE END USART3_Init 2 */
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -372,14 +412,19 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIO_Output_GPIO_Port, GPIO_Output_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIO_Output_TRIG_czujnik3___bia_y_GPIO_Port, GPIO_Output_TRIG_czujnik3___bia_y_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_OutputC13_Pin|GPIO_OutputC15_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO_Output_Pin|GPIO_Output__TRIG_czujnik1__czerwony_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5 
-                          |GPIO_PIN_14, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
 
   /*Configure GPIO pins : PGIO_Input_Pin GPIO_Input_Pin */
   GPIO_InitStruct.Pin = PGIO_Input_Pin|GPIO_Input_Pin;
@@ -387,34 +432,39 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : GPIO_Output_Pin */
-  GPIO_InitStruct.Pin = GPIO_Output_Pin;
+  /*Configure GPIO pin : GPIO_Output_TRIG_czujnik3___bia_y_Pin */
+  GPIO_InitStruct.Pin = GPIO_Output_TRIG_czujnik3___bia_y_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIO_Output_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIO_Output_TRIG_czujnik3___bia_y_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO_OutputC13_Pin GPIO_OutputC15_Pin */
-  GPIO_InitStruct.Pin = GPIO_OutputC13_Pin|GPIO_OutputC15_Pin;
+  /*Configure GPIO pins : GPIO_Output_Pin GPIO_Output__TRIG_czujnik1__czerwony_Pin */
+  GPIO_InitStruct.Pin = GPIO_Output_Pin|GPIO_Output__TRIG_czujnik1__czerwony_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : GPIO_InputC14_Pin */
-  GPIO_InitStruct.Pin = GPIO_InputC14_Pin;
+  /*Configure GPIO pin : GPIO_Input__ECHO_czujnik1__br_zowy_Pin */
+  GPIO_InitStruct.Pin = GPIO_Input__ECHO_czujnik1__br_zowy_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIO_InputC14_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIO_Input__ECHO_czujnik1__br_zowy_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA0 PA1 PA4 PA5 
-                           PA14 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5 
-                          |GPIO_PIN_14;
+  /*Configure GPIO pins : PA0 PA1 PA2 PA3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PD14 PD4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 }
 
