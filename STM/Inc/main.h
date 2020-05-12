@@ -62,16 +62,16 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define PGIO_Input_Pin GPIO_PIN_4
 #define PGIO_Input_GPIO_Port GPIOE
-#define GPIO_Output_Pin GPIO_PIN_5
-#define GPIO_Output_GPIO_Port GPIOE
+#define GPIO_Output_TRIG_czujnik3___bia_y_Pin GPIO_PIN_5
+#define GPIO_Output_TRIG_czujnik3___bia_y_GPIO_Port GPIOE
 #define GPIO_Input_Pin GPIO_PIN_6
 #define GPIO_Input_GPIO_Port GPIOE
-#define GPIO_OutputC13_Pin GPIO_PIN_13
-#define GPIO_OutputC13_GPIO_Port GPIOC
-#define GPIO_InputC14_Pin GPIO_PIN_14
-#define GPIO_InputC14_GPIO_Port GPIOC
-#define GPIO_OutputC15_Pin GPIO_PIN_15
-#define GPIO_OutputC15_GPIO_Port GPIOC
+#define GPIO_Output_Pin GPIO_PIN_13
+#define GPIO_Output_GPIO_Port GPIOC
+#define GPIO_Input__ECHO_czujnik1__br_zowy_Pin GPIO_PIN_14
+#define GPIO_Input__ECHO_czujnik1__br_zowy_GPIO_Port GPIOC
+#define GPIO_Output__TRIG_czujnik1__czerwony_Pin GPIO_PIN_15
+#define GPIO_Output__TRIG_czujnik1__czerwony_GPIO_Port GPIOC
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
