@@ -20,13 +20,16 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "dwt_stm32_delay.h"
+#include "ESP_INIT.h"
+#include "ENG_CONTROL.h"
+#include "UDS_INIT.h"
+#include "ControleMe.h"
+//#include "UDS_INIT.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,13 +52,14 @@ TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart2;
 
+osThreadId TASK_RecvMessHandle;
+osThreadId TASK_UsdHandle;
+osThreadId TASK_ControleMeHandle;
 /* USER CODE BEGIN PV */
-#define SERWER_PORT 50000
-#define SERWER_IP "127.0.0.1"
-uint32_t time;
-uint16_t dist_front;
-uint16_t dist_left;
-uint16_t dist_right;
+
+
+uint32_t 							time;
+
 
 
 /* USER CODE END PV */
@@ -65,6 +69,10 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_USART2_UART_Init(void);
+void TASK_RecvMess_init(void const * argument);
+void TASK_Usd_init(void const * argument);
+void TASK_ControleMe_init(void const * argument);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -72,88 +80,6 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void forward()
-{
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
-
-}
-
-void back()
-{
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
-}
-
-void left()
-{
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
-}
-
-void right()
-{
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
-}
-void break_()
-{
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
-}
-
-uint32_t distance(GPIO_TypeDef* GPIO_TRIG, uint16_t GPIO_PIN_TRIG, GPIO_TypeDef* GPIO_ECHO, uint16_t GPIO_PIN_ECHO  )
-{
-	uint32_t local_time = 0;
-	HAL_GPIO_WritePin(GPIO_TRIG, GPIO_PIN_TRIG, GPIO_PIN_SET);
-	DWT_Delay_us(10);
-	HAL_GPIO_WritePin(GPIO_TRIG, GPIO_PIN_TRIG, GPIO_PIN_RESET);
-
-	while(!HAL_GPIO_ReadPin(GPIO_ECHO, GPIO_PIN_ECHO));
-
-	while(HAL_GPIO_ReadPin(GPIO_ECHO, GPIO_PIN_ECHO))
-	{
-		local_time++;
-		DWT_Delay_us(1);
-	}
-
-	return local_time /58;
-}
-
-void send_string(char* s)
-{
- HAL_UART_Transmit(&huart2, (uint8_t*)s, strlen(s), 100);
-}
-
-bool find_command(char bufor[], char command[])
-{
-	int find_command_size = strlen(command), x = 0;
-
-	int size_end = strlen(bufor);
-	for(int i =0; i<size_end; i++)	{
-		if (bufor[i]==command[x]){
-			if(x==0){
-				size_end = i + find_command_size;
-			}
-			x++;
-		}
-	}
-
-	if(x == find_command_size){
-		return true;}
-	else{
-		return false;}
-}
 
 
 /* USER CODE END 0 */
@@ -169,7 +95,6 @@ int main(void)
 
 
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -198,60 +123,57 @@ int main(void)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
   	  	  	  	  	  	  	  	  	  	  	  /* DELAY DWT */
   DWT_Delay_Init();
+  	  	  	  	  	  	  	  	  	  	  	  /* ESP INIT */
+  ESP_Init();
   /* USER CODE END 2 */
 
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* definition and creation of TASK_RecvMess */
+  osThreadDef(TASK_RecvMess, TASK_RecvMess_init, osPriorityNormal, 0, 128);
+  TASK_RecvMessHandle = osThreadCreate(osThread(TASK_RecvMess), NULL);
+
+  /* definition and creation of TASK_Usd */
+  osThreadDef(TASK_Usd, TASK_Usd_init, osPriorityAboveNormal, 0, 128);
+  TASK_UsdHandle = osThreadCreate(osThread(TASK_Usd), NULL);
+
+  /* definition and creation of TASK_ControleMe */
+  osThreadDef(TASK_ControleMe, TASK_ControleMe_init, osPriorityBelowNormal, 0, 128);
+  TASK_ControleMeHandle = osThreadCreate(osThread(TASK_ControleMe), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
+  osKernelStart();
+ 
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  	  	  	  	  	  	  	  	  	  	  	  	  /* TESTY NAD WIFI -> DLACZEGO NIE DZIA�?A?! PART 2 */
-  char bufor[100] = {0};
-  /*RESET WIFI*/
-  send_string("AT+RST\r\n");
-  HAL_UART_Receive(&huart2, &bufor, 100, 100);
-
-  /*TEST KOMUNIKACJI*/
-  	 send_string("AT\r\n");
-  	 HAL_UART_Receive(&huart2, &bufor, 100, 100);
-
-  /*TRYB PRACY 1 - KLIENT / 2 - ACCES POINT*/
-  	  send_string("AT+CWMODE=3\r\n");
-  	  HAL_UART_Receive(&huart2, &bufor, 100, 100);
-
-  /*USTAWIENIA PUNKTU DOST�?POWEGO - <nazwa>,<hasło>,<kanał>,<kodowanie>*/
-  	  send_string("AT+CWSAP=\"ControlME\",\"1234567890\",5,3\r\n");
-  	  HAL_UART_Receive(&huart2, &bufor, 100, 100);
-
-
-    /* TRYB PRACY 0 - OBS�?UGA JEDNEGO PO�?ĄCZENIA */
-  	  send_string("AT+CIPMUX=1\r\n");
-  	  HAL_UART_Receive(&huart2, &bufor, 100, 150);
-
-
-
-/*KONFIGURACJA SERWEA NA OKREŚLONYM PORCIE*/
-  	  send_string("AT+CIPSERVER=1,80\r\n");
-  	  HAL_UART_Receive(&huart2, &bufor, 100, 150);
-  int i = 0;
- char jada[] = "jada";
-  while(1)
+    while(1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_UART_Receive(&huart2, &bufor, 100, 1000);
 
-	  if(find_command(bufor, "forward"))
-	  {
-	  	  forward();
-		  memset(bufor, 0, strlen(bufor));
-		  HAL_Delay(100);
-		  break_();
-	  }
 
-	/*dist_front		=	distance(GPIOC,		GPIO_PIN_15,	GPIOC,	GPIO_PIN_14 );	/* czujnik1 */
-	/*dist_left	=	distance(GPIOE,		GPIO_PIN_5,		GPIOE,	GPIO_PIN_4 );
-	dist_right	=	distance(GPIOC,		GPIO_PIN_13,	GPIOE,	GPIO_PIN_6 );	/* czujnik2 */
-		/* czujnik3 */
+	/* czujnik3 */
 
   }
   /* USER CODE END 3 */
@@ -319,7 +241,7 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 41999;
+  htim4.Init.Prescaler = 41;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 1999;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -421,7 +343,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);
@@ -459,8 +381,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD14 PD4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_4;
+  /*Configure GPIO pins : PD14 PD15 PD4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_15|GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -471,6 +393,81 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_TASK_RecvMess_init */
+/**
+  * @brief  Function implementing the TASK_RecvMess thread.
+  * @param  argument: Not used 
+  * @retval None
+  */
+/* USER CODE END Header_TASK_RecvMess_init */
+void TASK_RecvMess_init(void const * argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+	while(1)
+	{
+			CM_init_RECV();
+			osDelay(0.001);
+	}
+  /* USER CODE END 5 */ 
+}
+
+/* USER CODE BEGIN Header_TASK_Usd_init */
+/**
+* @brief Function implementing the TASK_Usd thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_TASK_Usd_init */
+void TASK_Usd_init(void const * argument)
+{
+	while(1)
+	{
+		CM_init_USD();
+		osDelay(200);
+	}
+}
+
+/* USER CODE BEGIN Header_TASK_ControleMe_init */
+/**
+* @brief Function implementing the TASK_ControleMe thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_TASK_ControleMe_init */
+void TASK_ControleMe_init(void const * argument)
+{
+  /* USER CODE BEGIN TASK_ControleMe_init */
+  /* Infinite loop */
+	while(1)
+	{
+		CM_init_ControleMe();
+		osDelay(0.01);
+	}
+  /* USER CODE END TASK_ControleMe_init */
+}
+
+ /**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM1 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
