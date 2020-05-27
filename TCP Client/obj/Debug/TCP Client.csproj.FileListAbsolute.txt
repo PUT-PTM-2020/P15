@@ -1,0 +1,11 @@
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\bin\Debug\TCP Client.exe.config
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\bin\Debug\TCP Client.exe
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\bin\Debug\TCP Client.pdb
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\obj\Debug\TCP Client.csprojAssemblyReference.cache
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\obj\Debug\TCP_Client.Properties.Resources.resources
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\obj\Debug\TCP Client.csproj.GenerateResource.cache
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\obj\Debug\TCP Client.exe
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\obj\Debug\TCP Client.pdb
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\obj\Debug\TCP_Client.Form1.resources
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\bin\Debug\SimpleTCP.dll
+C:\Users\JordanK\source\repos\TCP Client\TCP Client\obj\Debug\TCP Client.csproj.CopyComplete
