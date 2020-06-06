@@ -20,7 +20,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -28,7 +27,6 @@
 #include "ESP_INIT.h"
 #include "ENG_CONTROL.h"
 #include "UDS_INIT.h"
-#include "ControleMe.h"
 //#include "UDS_INIT.h"
 /* USER CODE END Includes */
 
@@ -52,15 +50,7 @@ TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart2;
 
-osThreadId TASK_RecvMessHandle;
-osThreadId TASK_UsdHandle;
-osThreadId TASK_ControleMeHandle;
 /* USER CODE BEGIN PV */
-
-
-uint32_t 							time;
-
-
 
 /* USER CODE END PV */
 
@@ -69,18 +59,12 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_USART2_UART_Init(void);
-void TASK_RecvMess_init(void const * argument);
-void TASK_Usd_init(void const * argument);
-void TASK_ControleMe_init(void const * argument);
-
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-
 
 /* USER CODE END 0 */
 
@@ -123,58 +107,26 @@ int main(void)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
   	  	  	  	  	  	  	  	  	  	  	  /* DELAY DWT */
   DWT_Delay_Init();
-  	  	  	  	  	  	  	  	  	  	  	  /* ESP INIT */
+
   ESP_Init();
   /* USER CODE END 2 */
 
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-
-  /* Create the thread(s) */
-  /* definition and creation of TASK_RecvMess */
-  osThreadDef(TASK_RecvMess, TASK_RecvMess_init, osPriorityNormal, 0, 128);
-  TASK_RecvMessHandle = osThreadCreate(osThread(TASK_RecvMess), NULL);
-
-  /* definition and creation of TASK_Usd */
-  osThreadDef(TASK_Usd, TASK_Usd_init, osPriorityAboveNormal, 0, 128);
-  TASK_UsdHandle = osThreadCreate(osThread(TASK_Usd), NULL);
-
-  /* definition and creation of TASK_ControleMe */
-  osThreadDef(TASK_ControleMe, TASK_ControleMe_init, osPriorityBelowNormal, 0, 128);
-  TASK_ControleMeHandle = osThreadCreate(osThread(TASK_ControleMe), NULL);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* Start scheduler */
-  osKernelStart();
- 
-  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-    while(1)
+
+  	  	  	  	  	  	  	  	  	  	  	  	  /* TESTY NAD WIFI -> DLACZEGO NIE DZIA�?A?! PART 2 */
+
+
+
+
+
+  while(1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-
-	/* czujnik3 */
-
+		  CM_init();
   }
   /* USER CODE END 3 */
 }
@@ -393,60 +345,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_TASK_RecvMess_init */
-/**
-  * @brief  Function implementing the TASK_RecvMess thread.
-  * @param  argument: Not used 
-  * @retval None
-  */
-/* USER CODE END Header_TASK_RecvMess_init */
-void TASK_RecvMess_init(void const * argument)
-{
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-	while(1)
-	{
-			CM_init_RECV();
-			osDelay(0.001);
-	}
-  /* USER CODE END 5 */ 
-}
-
-/* USER CODE BEGIN Header_TASK_Usd_init */
-/**
-* @brief Function implementing the TASK_Usd thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_TASK_Usd_init */
-void TASK_Usd_init(void const * argument)
-{
-	while(1)
-	{
-		CM_init_USD();
-		osDelay(200);
-	}
-}
-
-/* USER CODE BEGIN Header_TASK_ControleMe_init */
-/**
-* @brief Function implementing the TASK_ControleMe thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_TASK_ControleMe_init */
-void TASK_ControleMe_init(void const * argument)
-{
-  /* USER CODE BEGIN TASK_ControleMe_init */
-  /* Infinite loop */
-	while(1)
-	{
-		CM_init_ControleMe();
-		osDelay(0.01);
-	}
-  /* USER CODE END TASK_ControleMe_init */
-}
 
  /**
   * @brief  Period elapsed callback in non blocking mode

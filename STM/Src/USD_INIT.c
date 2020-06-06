@@ -34,24 +34,47 @@ bool USD_set_lock(){
 	_main_dist_left		=	UDS_distance(GPIOE,		GPIO_PIN_5,		GPIOE,	GPIO_PIN_4 );
 	_main_dist_right	=	UDS_distance(GPIOC,		GPIO_PIN_13,	GPIOE,	GPIO_PIN_6 );
 
-	if(((_main_dist_front <= 35) && ( _main_dist_front > 25)) 			||
-			((_main_dist_left	<= 35) && ( _main_dist_left > 25)) 	||
-			((_main_dist_right <= 35) && ( _main_dist_left > 25)) 		)
+	if(((_main_dist_front <= 45) && ( _main_dist_front > 35)) 		||
+			((_main_dist_left	<= 55) && ( _main_dist_left > 45)) 	||
+			((_main_dist_right <= 55) && ( _main_dist_left > 45)) 		)
 	{
-		//_FLAG_reduce_speed = true;
+		if(!_FLAG_reduce_speed){
+			_FLAG_reduce_speed = true;
+		}
+	} else if((_main_dist_front > 45) || (_main_dist_left	> 55) || (_main_dist_right > 55)){
+		if(_FLAG_reduce_speed){
+			_FLAG_reduce_speed = false;
+		}
 	}
 
-	if((_main_dist_front <= 25) || (_main_dist_left	<= 25) || (_main_dist_right <= 25)){
+	if((_main_dist_front <= 35) || (_main_dist_left	<= 45) || (_main_dist_right <= 45)){
+		if(_FLAG_reduce_speed){
+			_FLAG_reduce_speed = false;
+		}
+
 		return false;
 	} else {
-		_FLAG_reduce_speed = false;
 		return true;
 	}
 }
 
 bool USD_reduce_speed(){
-	if(_FLAG_reduce_speed == true)
+	if(_FLAG_reduce_speed == true){
 		return true;
-	else
+	}
+	else{
 		return false;
+	}
 }
+
+bool USD_init(){
+	if(!USD_set_lock()){
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
+		return false;										//WYKRYCIE PRZESZKODY POWODUJE ZABLOKOWOANIE OPCJI PORUSZANIA SIĘ W KIERUNKACH: LEWOSKRĘT, PRZÓD, PRAWOSKRĘT
+	}else {
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
+		return true;
+	}
+}
+
+

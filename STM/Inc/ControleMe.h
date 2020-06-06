@@ -5,12 +5,16 @@
 
 #include "main.h"
 
-int encoding_CMD(char recvBuff[], int startData, char command[]);
-int encoding_mess(char recvBuff[]);
+bool encoding_mess(char recvBuff[], uint8_t recvDataSize, uint8_t IDconnection, uint8_t startData);
+bool encoding_mess(char recvBuff[], uint8_t recvDataSize, uint8_t IDconnection, uint8_t startData);
+
 bool recv_buff_EMPTY(void);
+int find_command(char bufor[]);
+void time_to_died(void);
 void CM_init_USD(void);
-void CM_init_ControleMe(void);
-void CM_init_RECV(void);
+void CM_iniy(void);
+
+
 
 
 #endif
